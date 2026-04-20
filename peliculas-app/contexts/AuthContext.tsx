@@ -127,7 +127,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPerfilActual(perfilAct);
         localStorage.setItem(`${PERFIL_ACTUAL_STORAGE_KEY}-${email}`, JSON.stringify(perfilAct));
 
-        // 🔥 cargar favoritos al login
         const favoritesGuardados = localStorage.getItem(`${FAVORITES_STORAGE_KEY}-${email}`);
         const favs = favoritesGuardados ? JSON.parse(favoritesGuardados) : [];
         setFavorites(favs);
@@ -250,7 +249,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         editarPerfil,
         cambiarContrasena,
 
-        // 🔥 SOLUCIÓN DEL ERROR
         favorites,
         toggleFavorite,
         isFavorite
