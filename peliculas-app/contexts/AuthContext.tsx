@@ -235,25 +235,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        isLoggedIn,
-        login,
-        logout,
-        register,
-        userEmail,
-        perfiles,
-        perfilActual,
-        crearPerfil,
-        seleccionarPerfil,
-        editarPerfil,
-        cambiarContrasena,
+<AuthContext.Provider
+  value={{
+    isLoggedIn,
+    login,
+    logout,
+    register,
+    userEmail,
+    perfiles,
+    perfilActual,
+    crearPerfil,
+    seleccionarPerfil,
+    editarPerfil,
+    cambiarContrasena,
 
-        favorites,
-        toggleFavorite,
-        isFavorite
-      }}
-    >
+    // 🔥 IMPORTANTE
+    favorites,
+    toggleFavorite,
+    isFavorite
+  }}
+>
       {children}
     </AuthContext.Provider>
   );
