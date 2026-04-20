@@ -248,6 +248,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return favorites.includes(movieId);
   };
 
+  console.log("VERSION NUEVA AUTH");
   return (
 <AuthContext.Provider
 value={{
