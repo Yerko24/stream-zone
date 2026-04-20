@@ -264,6 +264,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isFavorite = (movieId: string) => {
     return favorites.includes(movieId);
   };
+  const [mounted, setMounted] = useState(false);
+
+useEffect(() => {
+  setMounted(true);
+}, []);
+
+if (!mounted) return null;
 
   console.log("VERSION NUEVA AUTH");
   return (
