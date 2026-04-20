@@ -48,11 +48,57 @@ const PERFIL_ACTUAL_STORAGE_KEY = "streamzone-perfil-actual";
 const FAVORITES_STORAGE_KEY = "streamzone-favorites";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [perfiles, setPerfiles] = useState<Perfil[]>([]);
-  const [perfilActual, setPerfilActual] = useState<Perfil | null>(null);
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const session = localStorage.getItem(SESSION_STORAGE_KEY);
+    return session === "true";
+  });
+  const [userEmail, setUserEmail] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(USER_EMAIL_STORAGE_KEY);
+  });
+  const [perfiles, setPerfiles] = useState<Perfil[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const email = localStorage.getItem(USER_EMAIL_STORAGE_KEY);
+    const session = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (session === "true" && email) {
+      const perfilesGuardados = localStorage.getItem(`${PERFILES_STORAGE_KEY}-${email}`);
+      const perfilesData: Perfil[] = perfilesGuardados ? JSON.parse(perfilesGuardados) : [];
+      if (perfilesData.length === 0) {
+        const perfilPorDefecto: Perfil = {
+          id: "perfil-1",
+          nombre: "Mi Perfil",
+          email
+        };
+        perfilesData.push(perfilPorDefecto);
+        localStorage.setItem(`${PERFILES_STORAGE_KEY}-${email}`, JSON.stringify(perfilesData));
+      }
+      return perfilesData;
+    }
+    return [];
+  });
+  const [perfilActual, setPerfilActual] = useState<Perfil | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const email = localStorage.getItem(USER_EMAIL_STORAGE_KEY);
+    const session = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (session === "true" && email) {
+      const perfilesGuardados = localStorage.getItem(`${PERFILES_STORAGE_KEY}-${email}`);
+      const perfilesData: Perfil[] = perfilesGuardados ? JSON.parse(perfilesGuardados) : [];
+      const perfilActualGuardado = localStorage.getItem(`${PERFIL_ACTUAL_STORAGE_KEY}-${email}`);
+      return perfilActualGuardado ? JSON.parse(perfilActualGuardado) : perfilesData[0] || null;
+    }
+    return null;
+  });
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
+    const email = localStorage.getItem(USER_EMAIL_STORAGE_KEY);
+    const session = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (session === "true" && email) {
+      const favoritesGuardados = localStorage.getItem(`${FAVORITES_STORAGE_KEY}-${email}`);
+      return favoritesGuardados ? JSON.parse(favoritesGuardados) : [];
+    }
+    return [];
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -64,37 +110,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           { email: MOCK_EMAIL, password: MOCK_PASSWORD }
         ];
         localStorage.setItem(USUARIOS_STORAGE_KEY, JSON.stringify(usuariosIniciales));
-      }
-
-      const session = localStorage.getItem(SESSION_STORAGE_KEY);
-      const email = localStorage.getItem(USER_EMAIL_STORAGE_KEY);
-
-      if (session === "true" && email) {
-        setIsLoggedIn(true);
-        setUserEmail(email);
-
-        const perfilesGuardados = localStorage.getItem(`${PERFILES_STORAGE_KEY}-${email}`);
-        const perfilesData: Perfil[] = perfilesGuardados ? JSON.parse(perfilesGuardados) : [];
-
-        if (perfilesData.length === 0) {
-          const perfilPorDefecto: Perfil = {
-            id: "perfil-1",
-            nombre: "Mi Perfil",
-            email
-          };
-          perfilesData.push(perfilPorDefecto);
-          localStorage.setItem(`${PERFILES_STORAGE_KEY}-${email}`, JSON.stringify(perfilesData));
-        }
-
-        setPerfiles(perfilesData);
-
-        const perfilActualGuardado = localStorage.getItem(`${PERFIL_ACTUAL_STORAGE_KEY}-${email}`);
-        const perfilAct = perfilActualGuardado ? JSON.parse(perfilActualGuardado) : perfilesData[0];
-        setPerfilActual(perfilAct);
-
-        const favoritesGuardados = localStorage.getItem(`${FAVORITES_STORAGE_KEY}-${email}`);
-        const favs = favoritesGuardados ? JSON.parse(favoritesGuardados) : [];
-        setFavorites(favs);
       }
     } catch (error) {
       console.error("Error initializing auth state:", error);
@@ -117,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(USER_EMAIL_STORAGE_KEY, email);
 
         const perfilesGuardados = localStorage.getItem(`${PERFILES_STORAGE_KEY}-${email}`);
-        let perfilesData: Perfil[] = perfilesGuardados ? JSON.parse(perfilesGuardados) : [];
+        const perfilesData: Perfil[] = perfilesGuardados ? JSON.parse(perfilesGuardados) : [];
 
         if (perfilesData.length === 0) {
           const perfilPorDefecto: Perfil = {
@@ -228,7 +243,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const cambiarContrasena = (currentPassword: string, newPassword: string) => {
+  const cambiarContrasena = (_currentPassword: string, _newPassword: string) => {
+    void _currentPassword;
+    void _newPassword;
     return { success: true, message: "Contraseña cambiada (demo)" };
   };
 
