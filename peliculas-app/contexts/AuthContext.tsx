@@ -26,6 +26,8 @@ interface AuthContextType {
   seleccionarPerfil: (perfil: Perfil) => void;
   editarPerfil: (perfilId: string, nuevoNombre: string) => void;
   cambiarContrasena: (currentPassword: string, newPassword: string) => { success: boolean; message: string };
+
+  // 🔥 FAVORITOS
   favorites: string[];
   toggleFavorite: (movieId: string) => void;
   isFavorite: (movieId: string) => boolean;
@@ -125,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setPerfilActual(perfilAct);
         localStorage.setItem(`${PERFIL_ACTUAL_STORAGE_KEY}-${email}`, JSON.stringify(perfilAct));
 
-        // cargar favoritos
+        // 🔥 cargar favoritos al login
         const favoritesGuardados = localStorage.getItem(`${FAVORITES_STORAGE_KEY}-${email}`);
         const favs = favoritesGuardados ? JSON.parse(favoritesGuardados) : [];
         setFavorites(favs);
@@ -143,7 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = (email: string, password: string) => {
     try {
       if (!email || !password) {
-        return { success: false, message: "Email y contraseña son requeridos" };
+        return { success: false, message: "Email y contraseña requeridos" };
       }
 
       if (!email.includes("@")) {
@@ -176,18 +178,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPerfiles([]);
     setPerfilActual(null);
     setFavorites([]);
-    localStorage.clear();
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+    localStorage.removeItem(USER_EMAIL_STORAGE_KEY);
   };
 
+  const crearPerfil = (nombre: string, email: string): Perfil => {
+    const nuevoPerfil: Perfil = {
+      id: `perfil-${Date.now()}`,
+      nombre,
+      email
+    };
+
+    const nuevos = [...perfiles, nuevoPerfil];
+    setPerfiles(nuevos);
+    localStorage.setItem(`${PERFILES_STORAGE_KEY}-${email}`, JSON.stringify(nuevos));
+
+    return nuevoPerfil;
+  };
+
+  const seleccionarPerfil = (perfil: Perfil) => {
+    setPerfilActual(perfil);
+    if (userEmail) {
+      localStorage.setItem(`${PERFIL_ACTUAL_STORAGE_KEY}-${userEmail}`, JSON.stringify(perfil));
+    }
+  };
+
+  const editarPerfil = (perfilId: string, nuevoNombre: string) => {
+    const actualizados = perfiles.map(p =>
+      p.id === perfilId ? { ...p, nombre: nuevoNombre } : p
+    );
+
+    setPerfiles(actualizados);
+
+    if (userEmail) {
+      localStorage.setItem(`${PERFILES_STORAGE_KEY}-${userEmail}`, JSON.stringify(actualizados));
+    }
+  };
+
+  const cambiarContrasena = (currentPassword: string, newPassword: string) => {
+    return { success: true, message: "Contraseña cambiada (demo)" };
+  };
+
+  // 🔥 FAVORITOS
   const toggleFavorite = (movieId: string) => {
     if (!userEmail) return;
 
-    const newFavs = favorites.includes(movieId)
+    const nuevos = favorites.includes(movieId)
       ? favorites.filter(id => id !== movieId)
       : [...favorites, movieId];
 
-    setFavorites(newFavs);
-    localStorage.setItem(`${FAVORITES_STORAGE_KEY}-${userEmail}`, JSON.stringify(newFavs));
+    setFavorites(nuevos);
+    localStorage.setItem(`${FAVORITES_STORAGE_KEY}-${userEmail}`, JSON.stringify(nuevos));
   };
 
   const isFavorite = (movieId: string) => {
@@ -204,12 +245,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userEmail,
         perfiles,
         perfilActual,
-        crearPerfil: () => { throw new Error("No implementado"); },
-        seleccionarPerfil: () => {},
-        editarPerfil: () => {},
-        cambiarContrasena: () => ({ success: true, message: "" }),
+        crearPerfil,
+        seleccionarPerfil,
+        editarPerfil,
+        cambiarContrasena,
 
-        // 🔥 IMPORTANTE
+        // 🔥 SOLUCIÓN DEL ERROR
         favorites,
         toggleFavorite,
         isFavorite
